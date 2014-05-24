@@ -5,7 +5,8 @@
   "main": "index.js",
   "dependencies": {
     "tls-handshake": "~0.0.3",
-    "tls-header": "~0.0.1"
+    "tls-header": "~0.0.1",
+    "tls-constants": "~0.0.1"
   },
   "devDependencies": {},
   "scripts": {

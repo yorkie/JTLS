@@ -3,11 +3,13 @@ var net = require('net');
 var TLSHeader = require('tls-header');
 var Handshake = require('tls-handshake').Handshake;
 var HelloMessage = require('tls-handshake').HelloMessage;
+var constants = require('tls-constants');
 
 function TLSRequest(port, host) {
   this.socket = net.connect(port, host, this._onsocketConnected.bind(this));
   this.socket.on('data', this._ondata.bind(this));
   this.socket.on('error', this._onerror.bind(this));
+  this.socket.on('close', this._onclose.bind(this));
 }
 
 TLSRequest.prototype._onsocketConnected = function() {
@@ -26,13 +28,18 @@ TLSRequest.prototype._onsocketConnected = function() {
 };
 
 TLSRequest.prototype._ondata = function(chunk) {
-  console.log('haha');
-  console.log(chunk);
+  var version = [ chunk[1], chunk[2] ];
+  var type = constants.TLS.ContentTypes[chunk[0]];
+  console.log(type, version);
 };
 
 TLSRequest.prototype._onerror = function(err) {
   console.error(err.stack);
   process.exit();
 };
+
+TLSRequest.prototype._onclose = function() {
+  console.log('closed');
+}
 
 module.exports = TLSRequest;
