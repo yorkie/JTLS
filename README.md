@@ -6,7 +6,7 @@ TLS implementation in pure javascript
 ### Installation
 
 ```sh
-$ npm install tls
+$ npm install jtls
 ```
 
 ### License
