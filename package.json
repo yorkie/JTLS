@@ -1,0 +1,28 @@
+{
+  "name": "tls",
+  "version": "0.0.1",
+  "description": "TLS implementation in pure javascript",
+  "main": "index.js",
+  "dependencies": {
+    "tls-handshake": "~0.0.3",
+    "tls-header": "~0.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yorkie/tls.git"
+  },
+  "keywords": [
+    "tls",
+    "javascript"
+  ],
+  "author": "Yorkie Neil <yorkiefixer@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yorkie/tls/issues"
+  },
+  "homepage": "https://github.com/yorkie/tls"
+}
