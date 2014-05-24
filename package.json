@@ -1,5 +1,5 @@
 {
-  "name": "tls",
+  "name": "jtls",
   "version": "0.0.1",
   "description": "TLS implementation in pure javascript",
   "main": "index.js",

@@ -1,5 +1,5 @@
 
-node-tls
+JTLS - Javascript TLS
 ===================
 TLS implementation in pure javascript
 
