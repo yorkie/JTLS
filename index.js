@@ -28,9 +28,39 @@ TLSRequest.prototype._onsocketConnected = function() {
 };
 
 TLSRequest.prototype._ondata = function(chunk) {
-  var version = [ chunk[1], chunk[2] ];
   var type = constants.TLS.ContentTypes[chunk[0]];
-  console.log(type, version);
+  var version = matchVersion();
+  var length = chunk.readUInt16BE(3);
+  var fragment = chunk.slice(5, 5 + length);
+  console.log(type, version, length, fragment);
+
+  if (type === 'alert') {
+    parseAlert(fragment);
+  }
+
+  function matchVersion() {
+    var versions = constants.TLS.Versions;
+    for (var ver in versions) {
+      var item = versions[ver];
+      if (item[0] === chunk[1] && item[1] === chunk[2]) {
+        return ver;
+      }
+    }
+  }
+
+  function parseAlert(fragment) {
+    var level = constants.alert.level[fragment[0]];
+    var description = constants.alert.description[fragment[1]];
+    switch (level) {
+      case 'warning':
+        console.error(description);
+        break;
+      case 'fatal':
+        throw new Error(description);
+      default:
+        break;
+    }
+  }
 };
 
 TLSRequest.prototype._onerror = function(err) {
