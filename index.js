@@ -24,16 +24,18 @@ TLSRequest.prototype._onsocketConnected = function() {
   message.body = handshake.toBuffer();
 
   var buf = message.toBuffer();
+  console.log(buf);
   this.socket.write(buf);
 };
 
 TLSRequest.prototype._ondata = function(chunk) {
+  console.log(chunk);
   var type = constants.TLS.ContentTypes[chunk[0]];
   var version = matchVersion();
   var length = chunk.readUInt16BE(3);
   var fragment = chunk.slice(5, 5 + length);
-  console.log(type, version, length, fragment);
 
+  // parse type
   if (type === 'alert') {
     parseAlert(fragment);
   }
