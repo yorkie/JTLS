@@ -1,12 +1,13 @@
 {
   "name": "jtls",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "TLS implementation in pure javascript",
   "main": "index.js",
   "dependencies": {
+    "debug": "^0.8.1",
+    "tls-constants": "~0.0.1",
     "tls-handshake": "~0.0.3",
-    "tls-header": "~0.0.1",
-    "tls-constants": "~0.0.1"
+    "tls-header": "~0.0.1"
   },
   "devDependencies": {},
   "scripts": {

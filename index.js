@@ -1,11 +1,14 @@
 
+var fs = require('fs');
 var net = require('net');
 var TLSHeader = require('tls-header');
 var Handshake = require('tls-handshake').Handshake;
 var HelloMessage = require('tls-handshake').HelloMessage;
 var constants = require('tls-constants');
+var debug = require('debug')('jtls');
 
 function TLSRequest(port, host) {
+  this._recordBuffer = null;
   this.socket = net.connect(port, host, this._onsocketConnected.bind(this));
   this.socket.on('data', this._ondata.bind(this));
   this.socket.on('error', this._onerror.bind(this));
@@ -24,35 +27,43 @@ TLSRequest.prototype._onsocketConnected = function() {
   message.body = handshake.toBuffer();
 
   var buf = message.toBuffer();
-  console.log(buf);
   this.socket.write(buf);
 };
 
 TLSRequest.prototype._ondata = function(chunk) {
-  console.log(chunk);
-  var type = constants.TLS.ContentTypes[chunk[0]];
-  var version = matchVersion();
-  var length = chunk.readUInt16BE(3);
-  var fragment = chunk.slice(5, 5 + length);
 
-  // parse type
-  if (type === 'alert') {
-    parseAlert(fragment);
+  var offset = 0;
+  var maxLength = chunk.length;
+
+  while (offset < maxLength) {
+    var record = {}
+    record.type = constants.TLS.ContentTypes[chunk.readUInt8(offset++)];
+    record.version = chunk.readUInt16BE(offset);
+    offset += 2;
+    record.length = chunk.readUInt16BE(offset);
+    offset += 2;
+    record.buffer = chunk.slice(offset, offset + record.length);
+    offset += record.length;
+    this._emitRecord(record);
+  }
+};
+
+TLSRequest.prototype._emitRecord = function(record) {
+  switch (record.type) {
+    case 'handshake':
+      parseHandshake(record.buffer);
+      break;
+    case 'alert':
+      parseAlert(record.buffer);
+      break;
+    default:
+      debug('unknown type: %s', record.type);
+      break;
   }
 
-  function matchVersion() {
-    var versions = constants.TLS.Versions;
-    for (var ver in versions) {
-      var item = versions[ver];
-      if (item[0] === chunk[1] && item[1] === chunk[2]) {
-        return ver;
-      }
-    }
-  }
-
-  function parseAlert(fragment) {
-    var level = constants.alert.level[fragment[0]];
-    var description = constants.alert.description[fragment[1]];
+  function parseAlert(buffer) {
+    var level = constants.alert.level[buffer[0]];
+    var description = constants.alert.description[buffer[1]];
     switch (level) {
       case 'warning':
         console.error(description);
@@ -63,6 +74,41 @@ TLSRequest.prototype._ondata = function(chunk) {
         break;
     }
   }
+
+  function parseHandshake(buffer) {
+    var type = constants.handshake.types[buffer[0]];
+    var len = buffer.readUInt24BE(1);
+    
+    // FIXME(Yorkie): valid version
+    // break version
+
+    if (type === 'server_hello') {
+      parseServerHello(buffer, 6)
+    }
+  }
+
+  function parseServerHello(buffer, offset) {
+    var serverHello = {}
+    serverHello.date = buffer.readUInt32BE(offset) * 1000;
+    offset += 4;
+    serverHello.random = buffer.slice(offset, offset + 28).toString('hex');
+    offset += 28;
+
+    // sessionId
+    var len = buffer.readUInt8(offset++);
+    serverHello.sessionId = buffer.slice(offset, offset + len).toString('hex');
+    offset += len;
+
+    // cipher suite
+    var cipherSuiteNumber = buffer.readUInt16BE(offset);
+    offset += 2;
+    serverHello.cipherSuite = constants.handshake.cipher_suites[cipherSuiteNumber];
+
+    // compression
+    serverHello.compression = buffer.readUInt8(offset++) == 1;
+    console.log(serverHello);
+  }
+
 };
 
 TLSRequest.prototype._onerror = function(err) {
