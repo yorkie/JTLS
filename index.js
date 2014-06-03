@@ -31,17 +31,26 @@ TLSRequest.prototype._onsocketConnected = function() {
 };
 
 TLSRequest.prototype._ondata = function(chunk) {
-
+  if (this._recordBuffer !== null) {
+    chunk = Buffer.concat([this._recordBuffer, chunk]);
+  }
   var offset = 0;
   var maxLength = chunk.length;
-
   while (offset < maxLength) {
-    var record = {}
+    var record = {};
     record.type = constants.TLS.ContentTypes[chunk.readUInt8(offset++)];
     record.version = chunk.readUInt16BE(offset);
     offset += 2;
     record.length = chunk.readUInt16BE(offset);
     offset += 2;
+
+    // if the expected length is bigger than the chunk size,
+    if (offset + record.length > maxLength) {
+      // fallback to the orignal offset
+      offset -= 5;
+      this._recordBuffer = chunk.slice(offset, maxLength);
+      break;
+    }
     record.buffer = chunk.slice(offset, offset + record.length);
     offset += record.length;
     this._emitRecord(record);
@@ -82,13 +91,25 @@ TLSRequest.prototype._emitRecord = function(record) {
     // FIXME(Yorkie): valid version
     // break version
 
-    if (type === 'server_hello') {
-      parseServerHello(buffer, 6)
+    switch (type) {
+      case 'server_hello':
+        parseServerHello(buffer, 6); 
+        break;
+      case 'certificate':
+        parseCertificate(buffer, 4, len);
+        break;
+      case 'server_key_exchange':
+        parseServerKeyExchange(buffer);
+        break;
+      case 'server_hello_done':
+        parseServerHelloDone(buffer);
+        break;
     }
   }
 
   function parseServerHello(buffer, offset) {
     var serverHello = {}
+    serverHello.type = 'serverHello';
     serverHello.date = buffer.readUInt32BE(offset) * 1000;
     offset += 4;
     serverHello.random = buffer.slice(offset, offset + 28).toString('hex');
@@ -107,6 +128,22 @@ TLSRequest.prototype._emitRecord = function(record) {
     // compression
     serverHello.compression = buffer.readUInt8(offset++) == 1;
     console.log(serverHello);
+  }
+
+  function parseCertificate(buffer, offset, len) {
+    var certificate = {
+      type: 'certificate',
+      raw: buffer.slice(offset, offset + len)
+    };
+    console.log(certificate);
+  }
+
+  function parseServerKeyExchange(buffer, offset) {
+    console.log(buffer);
+  }
+
+  function parseServerHelloDone(buffer, offset) {
+    console.log('serverHello done :)');
   }
 
 };
