@@ -5,6 +5,7 @@ var TLSHeader = require('tls-header');
 var Handshake = require('tls-handshake').Handshake;
 var HelloMessage = require('tls-handshake').HelloMessage;
 var constants = require('tls-constants');
+var x509 = require('x509');
 var debug = require('debug')('jtls');
 
 function TLSRequest(port, host) {
@@ -127,19 +128,35 @@ TLSRequest.prototype._emitRecord = function(record) {
 
     // compression
     serverHello.compression = buffer.readUInt8(offset++) == 1;
-    console.log(serverHello);
   }
 
   function parseCertificate(buffer, offset, len) {
-    var certificate = {
-      type: 'certificate',
-      raw: buffer.slice(offset, offset + len)
-    };
-    console.log(certificate);
+    var raw = buffer.slice(offset, offset + len);
+    var offset2 = 0;
+    var listLength = raw.readUInt24BE(offset2); offset2 += 3;
+    while (offset2 < listLength) {
+      var certLen = raw.readUInt24BE(offset2); offset2 += 3;
+      var certRaw = raw.slice(offset2, offset2 + certLen).toString('base64');
+      offset2 += certLen;
+      // generate file
+      var cert = buildX509(certRaw);
+      console.log(cert);
+    }
+
+    function buildX509(buffer) {
+      var result = '-----BEGIN CERTIFICATE-----\n';
+      var offset = 0;
+      while (offset < buffer.length) {
+        result += buffer.slice(offset, offset + 64) + '\n';
+        offset += 64;
+      }
+      result += '-----END CERTIFICATE-----';
+      return x509.parseCert(result);
+    }
   }
 
   function parseServerKeyExchange(buffer, offset) {
-    console.log(buffer);
+    // console.log(buffer, buffer.length);
   }
 
   function parseServerHelloDone(buffer, offset) {

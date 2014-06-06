@@ -7,7 +7,8 @@
     "debug": "^0.8.1",
     "tls-constants": ">=0.0.1",
     "tls-handshake": ">=0.0.3",
-    "tls-header": ">=0.0.1"
+    "tls-header": ">=0.0.1",
+    "x509": "0.0.7"
   },
   "devDependencies": {},
   "scripts": {
