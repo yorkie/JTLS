@@ -8,7 +8,7 @@
     "tls-constants": ">=0.0.1",
     "tls-handshake": ">=0.0.3",
     "tls-header": ">=0.0.1",
-    "x509": "0.0.7"
+    "x509-builder": "~0.1.0"
   },
   "devDependencies": {},
   "scripts": {
