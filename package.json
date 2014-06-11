@@ -1,6 +1,6 @@
 {
   "name": "jtls",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "TLS implementation in pure javascript",
   "main": "index.js",
   "dependencies": {
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yorkie/tls.git"
+    "url": "https://github.com/yorkie/JTLS.git"
   },
   "keywords": [
     "tls",
@@ -25,7 +25,7 @@
   "author": "Yorkie Neil <yorkiefixer@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/yorkie/tls/issues"
+    "url": "https://github.com/yorkie/JTLS/issues"
   },
-  "homepage": "https://github.com/yorkie/tls"
+  "homepage": "https://github.com/yorkie/JTLS"
 }
